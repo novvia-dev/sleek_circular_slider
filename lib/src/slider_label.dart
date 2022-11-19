@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'appearance.dart';
 
 class SliderLabel extends StatelessWidget {
@@ -24,7 +25,7 @@ class SliderLabel extends StatelessWidget {
     }
     final modifier = appearance.infoModifier(value);
     widgets.add(
-      Text('$modifier', style: appearance.infoMainLabelStyle),
+      Text(modifier, style: appearance.infoMainLabelStyle),
     );
     if (appearance.infoBottomLabelText != null) {
       widgets.add(Text(
