@@ -5,17 +5,23 @@ class _CurvePainter extends CustomPainter {
   final CircularSliderAppearance appearance;
   final double startAngle;
   final double angleRange;
+  final ui.Image? handlerImage;
 
   Offset? handler;
   Offset? center;
   late double radius;
+  Offset? centerForHandlerImage;
+  late double radiusForHandlerImage;
 
-  _CurvePainter({required this.appearance, this.angle = 30, required this.startAngle, required this.angleRange});
+  _CurvePainter({this.handlerImage, required this.appearance, this.angle = 30, required this.startAngle, required this.angleRange});
 
   @override
   void paint(Canvas canvas, Size size) {
     radius = math.min(size.width / 2, size.height / 2) - appearance.progressBarWidth * 0.5;
     center = Offset(size.width / 2, size.height / 2);
+
+    radiusForHandlerImage = math.min(size.width / 2, size.height / 2) - appearance.progressBarWidth * 0.01;
+    centerForHandlerImage = Offset(size.width / 2, size.height / 2);
 
     final progressBarRect = Rect.fromLTWH(0.0, 0.0, size.width, size.width);
 
@@ -49,36 +55,36 @@ class _CurvePainter extends CustomPainter {
     final dynamicGradient = appearance.dynamicGradient;
     final gradientRotationAngle = dynamicGradient
         ? appearance.counterClockwise
-        ? startAngle + 10.0
-        : startAngle - 10.0
+            ? startAngle + 10.0
+            : startAngle - 10.0
         : 0.0;
     final GradientRotation rotation = GradientRotation(degreeToRadians(gradientRotationAngle));
 
     final gradientStartAngle = dynamicGradient
         ? appearance.counterClockwise
-        ? 360.0 - currentAngle.abs()
-        : 0.0
+            ? 360.0 - currentAngle.abs()
+            : 0.0
         : appearance.gradientStartAngle;
     final gradientEndAngle = dynamicGradient
         ? appearance.counterClockwise
-        ? 360.0
-        : currentAngle.abs()
+            ? 360.0
+            : currentAngle.abs()
         : appearance.gradientStopAngle;
     final colors =
-    dynamicGradient && appearance.counterClockwise ? appearance.progressBarColors.reversed.toList() : appearance.progressBarColors;
+        dynamicGradient && appearance.counterClockwise ? appearance.progressBarColors.reversed.toList() : appearance.progressBarColors;
 
     final progressBarGradient = kIsWeb
         ? LinearGradient(
-      tileMode: TileMode.mirror,
-      colors: colors,
-    )
+            tileMode: TileMode.mirror,
+            colors: colors,
+          )
         : SweepGradient(
-      transform: rotation,
-      startAngle: degreeToRadians(gradientStartAngle),
-      endAngle: degreeToRadians(gradientEndAngle),
-      tileMode: TileMode.mirror,
-      colors: colors,
-    );
+            transform: rotation,
+            startAngle: degreeToRadians(gradientStartAngle),
+            endAngle: degreeToRadians(gradientEndAngle),
+            tileMode: TileMode.mirror,
+            colors: colors,
+          );
 
     final progressBarPaint = Paint()
       ..shader = progressBarGradient.createShader(progressBarRect)
@@ -89,8 +95,15 @@ class _CurvePainter extends CustomPainter {
 
     var dotPaint = Paint()..color = appearance.dotColor;
 
-    Offset handler = degreesToCoordinates(center!, -math.pi / 2 + startAngle + currentAngle + 1.5, radius);
-    canvas.drawCircle(handler, appearance.handlerSize, dotPaint);
+    Offset handler = degreesToCoordinates(center!, math.pi / 2 + startAngle + currentAngle, (radius));
+
+    Offset handlerOffsetForImage = degreesToCoordinates(centerForHandlerImage!, startAngle + currentAngle, (radiusForHandlerImage));
+
+    if (handlerImage != null) {
+      canvas.drawImage(handlerImage!, handlerOffsetForImage, dotPaint);
+    } else {
+      canvas.drawCircle(handler, appearance.handlerSize, dotPaint);
+    }
   }
 
   drawCircularArc({required Canvas canvas, required Size size, required Paint paint, bool ignoreAngle = false, bool spinnerMode = false}) {
@@ -105,7 +118,7 @@ class _CurvePainter extends CustomPainter {
 
   drawShadow({required Canvas canvas, required Size size}) {
     final shadowStep =
-    appearance.shadowStep != null ? appearance.shadowStep! : math.max(1, (appearance.shadowWidth - appearance.progressBarWidth) ~/ 10);
+        appearance.shadowStep != null ? appearance.shadowStep! : math.max(1, (appearance.shadowWidth - appearance.progressBarWidth) ~/ 10);
     final maxOpacity = math.min(1.0, appearance.shadowMaxOpacity);
     final repetitions = math.max(1, ((appearance.shadowWidth - appearance.progressBarWidth) ~/ shadowStep));
     final opacityStep = maxOpacity / repetitions;

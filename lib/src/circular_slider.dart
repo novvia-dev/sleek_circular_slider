@@ -1,10 +1,12 @@
 library circular_slider;
 
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show ByteData, Uint8List, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'appearance.dart';
 import 'slider_animations.dart';
@@ -63,8 +65,21 @@ class _SleekCircularSliderState extends State<SleekCircularSlider> with SingleTi
   SpinAnimationManager? _spinManager;
   ValueChangedAnimationManager? _animationManager;
   late int _appearanceHashCode;
+  ui.Image? _handlerImage;
 
   bool get _interactionEnabled => (widget.onChangeEnd != null || widget.onChange != null && !widget.appearance.spinnerMode);
+
+  _loadImage() async {
+    ByteData bd = await rootBundle.load(widget.appearance.handlerImagePath!);
+
+    final Uint8List bytes = Uint8List.view(bd.buffer);
+
+    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+
+    final ui.Image image = (await codec.getNextFrame()).image;
+
+    setState(() => _handlerImage = image);
+  }
 
   @override
   void initState() {
@@ -72,6 +87,10 @@ class _SleekCircularSliderState extends State<SleekCircularSlider> with SingleTi
     _startAngle = widget.appearance.startAngle;
     _angleRange = widget.appearance.angleRange;
     _appearanceHashCode = widget.appearance.hashCode;
+
+    if (widget.appearance.handlerImagePath != null) {
+      _loadImage();
+    }
 
     if (!widget.appearance.animationEnabled) {
       return;
@@ -182,6 +201,7 @@ class _SleekCircularSliderState extends State<SleekCircularSlider> with SingleTi
       angleRange: _angleRange,
       angle: _currentAngle! < 0.5 ? 0.5 : _currentAngle!,
       appearance: widget.appearance,
+      handlerImage: _handlerImage,
     );
     _oldWidgetAngle = widget.angle;
     _oldWidgetValue = widget.initialValue;

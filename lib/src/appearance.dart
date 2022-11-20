@@ -38,6 +38,7 @@ class CircularSliderAppearance {
   final bool counterClockwise;
   final double animDurationMultiplier;
   final int spinnerDuration;
+  final String? handlerImagePath;
   final CustomSliderWidths? customWidths;
   final CustomSliderColors? customColors;
   final InfoProperties? infoProperties;
@@ -123,6 +124,7 @@ class CircularSliderAppearance {
       this.startAngle = _defaultStartAngle,
       this.angleRange = _defaultAngleRange,
       this.infoProperties,
+      this.handlerImagePath,
       this.animationEnabled = true,
       this.counterClockwise = false,
       this.spinnerMode = false,
